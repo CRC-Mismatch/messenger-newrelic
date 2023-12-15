@@ -2,6 +2,7 @@
 
 namespace Arxus\NewrelicMessengerBundle\Newrelic;
 
+use Arxus\NewrelicMessengerBundle\Attribute\NewrelicMessage;
 use Symfony\Component\Messenger\Envelope;
 
 class NewrelicTransactionNameManager
@@ -32,10 +33,21 @@ class NewrelicTransactionNameManager
         }
 
         $message = $envelope->getMessage();
-        if ($message instanceof NameableNewrelicTransactionInterface) {
-            return $message->getNewrelicTransactionName();
+        if (!array_key_exists($message::class, $this->transactionNameRegistry)) {
+            $reflClass = new \ReflectionClass($message);
+            $attrs = $reflClass->getAttributes(NewrelicMessage::class);
+            foreach ($attrs as $attr) {
+                $attr = $attr->newInstance();
+
+                /** @var NewrelicMessage $attr */
+                return $this->transactionNameRegistry[$message::class] = $attr->transactionName;
+            }
         }
 
-        return $this->transactionNameRegistry[$class = get_class($message)] ?? $class;
+        if ($message instanceof NameableNewrelicTransactionInterface) {
+            return $this->transactionNameRegistry[$message::class] = $message->getNewrelicTransactionName();
+        }
+
+        return $this->transactionNameRegistry[$message::class] ??= $message::class;
     }
 }

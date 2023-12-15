@@ -5,6 +5,7 @@ namespace Arxus\NewrelicMessengerBundle\Tests\Newrelic;
 use Arxus\NewrelicMessengerBundle\Newrelic\NameableNewrelicTransactionInterface;
 use Arxus\NewrelicMessengerBundle\Newrelic\NewrelicTransactionNameManager;
 use Arxus\NewrelicMessengerBundle\Newrelic\NewrelicTransactionStamp;
+use Arxus\NewrelicMessengerBundle\Tests\Newrelic\Fixture\DummyMessage;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Messenger\Envelope;
 
@@ -62,5 +63,13 @@ class NewrelicTransactionNameManagerTest extends TestCase
         $transactionName = $this->newrelicTransactionNameManager->getTransactionName($envelope);
 
         $this->assertEquals($randomTransactionName, $transactionName);
+    }
+
+    public function test_transaction_name_with_attribute(): void
+    {
+        $envelope = new Envelope(new DummyMessage());
+        $transactionName = $this->newrelicTransactionNameManager->getTransactionName($envelope);
+
+        $this->assertEquals(DummyMessage::TRANSACTION_NAME, $transactionName);
     }
 }
